@@ -165,3 +165,24 @@ test('assistantStep: sin examen reconocido pide examen', () => {
   assert.match(r.reply, /examen/i);
   assert.equal(r.done, undefined);
 });
+
+test('assistantStep: negaciones en confirmación no agendan', () => {
+  const st = { appointments: [] };
+  const c = assistantStep({}, 'hemograma mañana a las 8', st, LUNES).ctx;
+  for (const t of ['no esta bien asi', 'no, mejor otro', 'no, ok']) {
+    const r = assistantStep(c, t, st, LUNES);
+    assert.equal(r.done, undefined, t);
+    assert.equal(r.ctx.time, undefined, t);
+    assert.match(r.reply, /hora/i);
+  }
+});
+
+test('assistantStep: slot lleno entre confirmar y sí ofrece alternativas', () => {
+  const c = assistantStep({}, 'hemograma mañana a las 8', { appointments: [] }, LUNES).ctx;
+  const full = { appointments: [{ date: '2026-11-10', time: '08:00', status: 'pendiente' }, { date: '2026-11-10', time: '08:00', status: 'confirmada' }] };
+  const r = assistantStep(c, 'sí', full, LUNES);
+  assert.equal(r.done, undefined);
+  assert.match(r.reply, /llenó|llenar/);
+  assert.equal(r.ctx.suggested.length, 3);
+  assert.ok(!r.ctx.suggested.includes('08:00'));
+});

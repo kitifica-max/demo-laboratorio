@@ -326,11 +326,15 @@ export function assistantStep(ctx0, text, state, today = new Date()) {
   const intent = parseIntent(text, today);
 
   if (ctx.stage === 'confirm' && !intent.date && !intent.time && !intent.exams) {
-    if (NO.test(n) && !YES.test(n)) {
+    if (/^(no|nop)\b/.test(n) || (NO.test(n) && !YES.test(n))) {
       delete ctx.time;
       return advance(ctx, state, today, 'Está bien.');
     }
     if (YES.test(n)) {
+      if (!freeSlots(state, ctx.date, today).includes(ctx.time)) {
+        delete ctx.time;
+        return advance(ctx, state, today, 'Ese horario se acaba de llenar.');
+      }
       return { reply: `Listo, su cita quedó solicitada para el ${fmtDate(ctx.date)} a las ${fmtTime(ctx.time)}. Le esperamos.`, ctx: {}, done: { exams: [...ctx.exams], date: ctx.date, time: ctx.time } };
     }
     return { reply: '¿Confirmo la cita? Diga sí para confirmar o no para cambiar la hora.', ctx };
