@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3a3a3a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Demo Laboratorio</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  body { background: var(--bg); min-height: 100dvh; }
+  .app { max-width: 480px; margin: 0 auto; min-height: 100dvh; padding: calc(14px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom)); }
+  .hdr { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .hdr h1 { font-size: 22px; }
+  .status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); font-weight: 600; }
+
+  .tabbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom)); width: min(448px, calc(100% - 32px));
+    background: var(--dark); border-radius: 999px; display: flex; justify-content: space-around; padding: 7px; z-index: 20; }
+  .tabbar[hidden] { display: none; }
+  .tab { flex: 1; display: grid; place-items: center; gap: 2px; padding: 7px 0 6px; color: #b5b5b5; text-decoration: none; border-radius: 999px; font-size: 10.5px; font-weight: 600; transition: background .15s, color .15s; }
+  .tab.on { background: #fff; color: var(--ink); }
+  .tab .svg-i { width: 21px; height: 21px; }
+
+  .hero { background: var(--dark); color: #fff; border-radius: var(--r-lg); padding: 22px; }
+  .hero .muted { color: #b5b5b5; }
+  .quick { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .qa { background: var(--card); border-radius: var(--r-md); padding: 18px; text-decoration: none; display: block; }
+  .qa .ic { width: 40px; height: 40px; border-radius: 14px; background: var(--accent-soft); color: #2f6db3; display: grid; place-items: center; margin-bottom: 22px; }
+  .qa.dark { background: var(--accent); }
+  .qa.dark .ic { background: #ffffff88; color: var(--ink); }
+  .list-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-decoration: none; }
+  .list-item:last-child { border: 0; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 0; background: var(--card); border-radius: 999px; padding: 8px 14px; font-weight: 600; font-size: 13px; cursor: pointer; transition: background .15s; }
+  .chip.on { background: var(--dark); color: #fff; }
+  .days { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; margin: 0 -16px; padding-left: 16px; padding-right: 16px; }
+  .day { flex: none; width: 58px; border: 0; background: var(--card); border-radius: 18px; padding: 10px 0; cursor: pointer; display: grid; gap: 2px; text-align: center; }
+  .day b { font-size: 18px; }
+  .day span { font-size: 11px; color: var(--muted); text-transform: capitalize; }
+  .day.on { background: var(--dark); color: #fff; }
+  .day.on span { color: #b5b5b5; }
+  .slotgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .sl { border: 0; background: var(--card); border-radius: 14px; padding: 11px 0; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; font-size: 13px; transition: background .2s; }
+  .sl.on { background: var(--accent); }
+  .sl:disabled { background: transparent; color: #b9b9b9; text-decoration: line-through; cursor: not-allowed; box-shadow: inset 0 0 0 1px #dcdcdc; }
+  .sl.flash { animation: arrive 1s ease; }
+  .sumbar { position: sticky; bottom: calc(86px + env(safe-area-inset-bottom)); background: var(--card); border-radius: var(--r-md); padding: 14px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 0 0 1px #00000008; }
+  .sec-title { margin: 22px 0 10px; font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .prep { background: var(--accent-soft); border-radius: 14px; padding: 10px 14px; font-size: 13px; margin-top: 10px; }
+
+  .chat { display: flex; flex-direction: column; gap: 10px; min-height: calc(100dvh - 300px); }
+  .msg { max-width: 84%; padding: 11px 15px; border-radius: 20px; animation: rise .2s ease; white-space: pre-wrap; }
+  .msg.bot { background: var(--card); border-bottom-left-radius: 6px; align-self: flex-start; }
+  .msg.me { background: var(--dark); color: #fff; border-bottom-right-radius: 6px; align-self: flex-end; }
+  .msg.ok { background: var(--ok-bg); }
+  .composer { position: sticky; bottom: calc(86px + env(safe-area-inset-bottom)); display: flex; gap: 8px; align-items: center; background: var(--card); border-radius: 999px; padding: 6px; margin-top: 14px; box-shadow: 0 0 0 1px #00000008; }
+  .composer input { border: 0; background: transparent; padding: 8px 10px; }
+  .composer input:focus { background: transparent; }
+  .mic { background: var(--accent); color: var(--ink); }
+  .mic.rec { background: var(--bad); color: #fff; animation: pulse 1.2s infinite; }
+  .suggest { display: flex; gap: 8px; overflow-x: auto; margin: 10px -16px 0; padding: 0 16px; scrollbar-width: none; }
+  .suggest .chip { flex: none; font-weight: 500; }
+
+  .range { position: relative; height: 8px; border-radius: 4px; background: #ececec; margin: 10px 0 4px; }
+  .range .band { position: absolute; top: 0; bottom: 0; background: var(--ok-bg); border-radius: 4px; }
+  .range .mark { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; background: var(--dark); border: 3px solid #fff; transform: translate(-50%, -50%); box-shadow: 0 0 0 1px #0002; }
+  .range .mark.bad { background: var(--bad); }
+  .param { padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
+  .param:last-child { border: 0; }
+  .login-list { max-height: 46dvh; overflow: auto; }
+</style>
+</head>
+<body>
+<div class="app" id="root"></div>
+<nav class="tabbar" id="tabbar" hidden></nav>
+<script type="module" src="app.js"></script>
+</body>
+</html>

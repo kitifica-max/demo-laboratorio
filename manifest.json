@@ -1,0 +1,11 @@
+{
+  "name": "Demo Laboratorio",
+  "short_name": "Laboratorio",
+  "start_url": "app.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ececec",
+  "theme_color": "#3a3a3a",
+  "lang": "es",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
