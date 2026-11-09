@@ -130,3 +130,25 @@ test('storage con localStorage', () => {
   assert.notEqual(C.load().patients[0].name, 'Cambiado');
   delete globalThis.localStorage;
 });
+
+const { snapshot, handleAppRequest, seed, slotLoad } = C;
+
+test('snapshot: solo resultados publicados y ocupación', () => {
+  const s = seed(new Date('2026-11-09T12:00:00'));
+  const snap = snapshot(s, '2026-11-09');
+  assert.ok(snap.orders.length > 0 && snap.orders.every(o => s.orders.find(x => x.id === o.id).published));
+  assert.ok(Object.keys(snap.load).every(d => d >= '2026-11-09'));
+  assert.equal(snap.patients[0].notes, undefined);
+});
+
+test('handleAppRequest: register y book con cupo', () => {
+  const s = seed(new Date('2026-11-09T12:00:00'));
+  const r = handleAppRequest(s, { type: 'register', name: 'Ana Prueba', phone: '7000-0000' });
+  assert.ok(r.ok && r.patient.id === 'p43');
+  const req = { type: 'book', patientId: 'p43', date: '2026-11-14', time: '07:00', examIds: ['glucosa', 'xx'] };
+  const free = 2 - slotLoad(s, req.date, req.time);
+  for (let i = 0; i < free; i++) assert.ok(handleAppRequest(s, req).ok);
+  assert.deepEqual(handleAppRequest(s, req), { ok: false, error: 'Ese horario se llenó' });
+  assert.deepEqual(s.appointments.at(-1).examIds, ['glucosa']);
+  assert.equal(handleAppRequest(s, { type: 'book', patientId: 'nadie', date: '2026-11-14', time: '07:30' }).ok, false);
+});

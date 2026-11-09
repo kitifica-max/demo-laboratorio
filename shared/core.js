@@ -328,3 +328,41 @@ export function patientRows(state, from, to) {
     id: p.id, nombre: p.name, dui: p.dui, fecha_nacimiento: p.birthDate, sexo: p.sex, telefono: p.phone, correo: p.email,
     notas: p.notes, ordenes: agg.get(p.id).n, total_gastado: agg.get(p.id).total.toFixed(2) }));
 }
+
+/* ---------- sincronización: snapshot y solicitudes de la app ---------- */
+
+// Lo que la app paciente puede ver: ocupación 14 días, pacientes, resultados publicados, precios.
+export function snapshot(state, today = toISO(new Date())) {
+  const load = {};
+  for (const a of state.appointments) {
+    if (a.status === 'cancelada' || a.date < today || a.date > addDays(today, 14)) continue;
+    (load[a.date] ||= {})[a.time] = (load[a.date][a.time] || 0) + 1;
+  }
+  return {
+    at: Date.now(), load,
+    patients: state.patients.map(({ id, name, sex, birthDate, phone, email, dui }) => ({ id, name, sex, birthDate, phone, email, dui })),
+    orders: state.orders.filter(o => o.published && o.status !== 'Anulado')
+      .map(({ id, patientId, date, items, total, results }) => ({ id, patientId, date, items, total, results })),
+    appointments: state.appointments.filter(a => a.date >= today).map(({ id, patientId, date, time, examIds, status }) => ({ id, patientId, date, time, examIds, status })),
+    prices: state.catalogPrices,
+  };
+}
+
+// Atiende una solicitud de la app. Muta state; devuelve la respuesta.
+export function handleAppRequest(state, req) {
+  if (req.type === 'register') {
+    const name = String(req.name || '').trim().slice(0, 80), phone = String(req.phone || '').trim().slice(0, 20);
+    if (!name) return { ok: false, error: 'Falta el nombre' };
+    const patient = { id: nextId(state.patients, 'p'), name, phone, sex: req.sex === 'M' ? 'M' : 'F', dui: '', birthDate: '', email: '', notes: 'Registrado desde la app' };
+    state.patients.push(patient);
+    return { ok: true, patient };
+  }
+  if (req.type === 'book') {
+    if (!state.patients.some(p => p.id === req.patientId)) return { ok: false, error: 'Paciente no encontrado' };
+    const examIds = (req.examIds || []).filter(examById);
+    const res = bookAppointment(state, { patientId: req.patientId, date: req.date, time: req.time, examIds });
+    if (res.ok) res.appt.source = 'app';
+    return res;
+  }
+  return { ok: false, error: 'Solicitud desconocida' };
+}
