@@ -176,7 +176,7 @@ export function seed(now) {
     });
   }
   // Paciente de demo: hemoglobina baja (ver orden destacada abajo).
-  Object.assign(patients[0], { name: 'María José Hernández Menjívar', sex: 'F', birthDate: '1991-04-17', notes: 'Fatiga reciente. Sin alergias conocidas.' });
+  Object.assign(patients[0], { name: 'María José Hernández Menjívar', email: 'mariajose.hernandez@example.com', sex: 'F', birthDate: '1991-04-17', notes: 'Fatiga reciente. Sin alergias conocidas.' });
 
   const catalogPrices = Object.fromEntries(CATALOG.map(e => [e.id, e.price]));
   const state = { patients, appointments: [], orders: [], purchases: [], suppliers: SUPPLIERS.map(s => ({ ...s })), catalogPrices };
@@ -206,7 +206,7 @@ export function seed(now) {
       const rr = rnd();
       if (rr < 0.01) o.status = 'Anulado';
       else if (back <= 2 && rr < 0.2) o.status = 'Pendiente';
-      if (back > 0 && o.status !== 'Anulado' && rnd() < 0.8) {
+      if (back > 0 && o.status !== 'Anulado' && (back > 2 || rnd() < 0.5)) {
         o.results = genResults(exams, pat.sex, rnd);
         o.published = true;
       }

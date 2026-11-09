@@ -52,12 +52,13 @@ export function connect(room, role, { onSnapshot, onRequest, onStatus } = {}) {
   }
   if (bc) bc.onmessage = e => onMsg(e.data);
   if (role === 'app') bc?.postMessage({ type: 'hello' });
-  status();
+  queueMicrotask(status); // tras devolver el objeto: el llamador ya terminó de inicializar
 
   // MQTT en segundo plano: si falla (sin internet, CDN o broker caído) la app sigue en modo local.
   (async () => {
     try {
-      const mqtt = await import(MQTT_URL);
+      const mod = await import(MQTT_URL);
+      const mqtt = mod.connect ? mod : mod.default;
       client = mqtt.connect(BROKER, { clientId: `demolab_${role}_${rid()}`, reconnectPeriod: 4000, connectTimeout: 8000, clean: true });
       client.on('connect', () => {
         mqttUp = true; status();

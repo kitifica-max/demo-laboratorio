@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo Laboratorio</title>
+<link rel="icon" href="icon.svg">
+<link rel="stylesheet" href="shared/styles.css">
+<style>
+  body { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+  .wrap { width: min(760px, 100%); }
+  .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+  .brand img { width: 52px; height: 52px; }
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .choice { display: block; text-decoration: none; background: var(--card); border-radius: var(--r-lg); padding: 28px; transition: transform .15s ease; }
+  .choice:hover { transform: translateY(-3px); }
+  .choice.dark { background: var(--dark); color: #fff; }
+  .choice.dark .muted { color: #b5b5b5; }
+  .choice .svg-i { width: 28px; height: 28px; margin-bottom: 40px; }
+  .choice h2 { font-size: 22px; margin-bottom: 6px; }
+  @media (max-width: 600px) { .choices { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><img src="icon.svg" alt=""><div><h1>Demo Laboratorio</h1><div class="muted">Sistema de gestión y app para pacientes</div></div></div>
+  <div class="choices">
+    <a class="choice dark" href="crm.html" id="crm"><span id="i1"></span><h2>CRM del laboratorio</h2><div class="muted">Pacientes, agenda, resultados, ventas, compras y reportes. Para la computadora.</div></a>
+    <a class="choice" href="app.html" id="app"><span id="i2"></span><h2>App del paciente</h2><div class="muted">Agendar con asistente de voz y ver resultados. Para el celular.</div></a>
+  </div>
+  <p class="muted small" style="margin-top:20px">Datos ficticios para demostración.</p>
+</div>
+<script type="module">
+  import { icon } from './shared/icons.js';
+  document.getElementById('i1').outerHTML = icon('dashboard');
+  document.getElementById('i2').outerHTML = icon('phone');
+  const sala = new URLSearchParams(location.search).get('sala');
+  if (sala) for (const id of ['crm', 'app']) document.getElementById(id).href += '?sala=' + encodeURIComponent(sala);
+</script>
+</body>
+</html>
