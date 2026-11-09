@@ -225,7 +225,7 @@ export function seed(now) {
   // Compras: ~2-3 por semana durante 60 días.
   for (let back = 60; back >= 0; back--) {
     const date = addDays(today, -back);
-    if (dow(date) === 0 || rnd() > 0.38) continue;
+    if (dow(date) === 0 || rnd() > 0.26) continue;
     const t = pick(PURCHASE_TYPES);
     state.purchases.push({
       id: 'c' + (state.purchases.length + 1), date, supplierId: t.supplier, category: t.category,
